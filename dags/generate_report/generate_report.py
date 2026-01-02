@@ -79,8 +79,5 @@ def generate_report():
     )
 
     # Task dependencies
-    start >> check_data_availability() >> [fetch_and_export, skip]
-    fetch_and_export >> send_email >> end
-    skip >> end
-
+    start >> check_data_availability() >> [fetch_and_export, skip] >> send_email >> end
 generate_report()

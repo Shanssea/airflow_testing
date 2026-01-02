@@ -100,6 +100,9 @@ def test_task_dependencies(dagbag):
     assert "check_data_availability" in dag.get_task("start").downstream_task_ids
     assert "fetch_and_export" in dag.get_task("check_data_availability").downstream_task_ids
     assert "skip" in dag.get_task("check_data_availability").downstream_task_ids
+    
     assert "send_email" in dag.get_task("fetch_and_export").downstream_task_ids
     assert "end" in dag.get_task("send_email").downstream_task_ids
+    
     assert "end" in dag.get_task("skip").downstream_task_ids
+    assert "send_email" not in dag.get_task("skip").downstream_task_ids
