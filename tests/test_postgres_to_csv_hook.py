@@ -24,7 +24,7 @@ def test_process_output(mock_to_csv, mock_hook_instance, query_results, expected
     result = mock_hook_instance._process_output(query_results)
     
     assert result == query_results # Ensure original results are returned
-    args, kwargs = mock_to_csv.call_args # Capture args and kwargs used in to_csv
+    args, kwargs = mock_to_csv.call_args # Capture kwargs used in to_csv
     assert args[0] == mock_hook_instance.output_path 
     assert kwargs["index"] is False
     assert len(pd.DataFrame(result)) == expected_df_length
