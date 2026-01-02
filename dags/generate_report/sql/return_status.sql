@@ -24,6 +24,6 @@ JOIN address a ON cus.address_id = a.address_id
 JOIN city city ON a.city_id = city.city_id
 JOIN country cty ON city.country_id = cty.country_id
 JOIN payment p ON r.rental_id = p.rental_id
-WHERE r.rental_date >= '{{ ds }}'::DATE - INTERVAL '14 days'
-  AND r.rental_date < '{{ ds }}'::DATE
+WHERE r.rental_date >= CAST(%(today)s AS DATE) - INTERVAL '14 days'
+  AND r.rental_date < CAST(%(today)s AS DATE)
 ORDER BY r.rental_date DESC;

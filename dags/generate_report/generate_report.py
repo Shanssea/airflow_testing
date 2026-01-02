@@ -68,7 +68,8 @@ def generate_report():
         task_id="fetch_and_export",
         output_path=os.path.join(AIRFLOW_HOME, config.postgres.get("report_output_path"), 'report_{{ ds }}.csv'),
         conn_id=config.postgres.get("conn_id"),
-        sql="return_status.sql"
+        sql="return_status.sql",
+        parameters={"today": config.sql.get("time_machine_today")}
     )
 
     # Send email with the report attached
