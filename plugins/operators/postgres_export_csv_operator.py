@@ -1,5 +1,6 @@
 from airflow.providers.common.sql.operators.sql import SQLExecuteQueryOperator
-from hooks.postgres_to_csv_hook import PostgresToCSVHook
+import pandas as pd
+from pathlib import Path
 
 class PostgresExportCSVOperator(SQLExecuteQueryOperator):
     def __init__(
@@ -9,10 +10,15 @@ class PostgresExportCSVOperator(SQLExecuteQueryOperator):
     ):
         super().__init__(**kwargs)
         self.output_path = output_path
+        
+    def _process_output(self, results, context):
+        """Overrides the internal method to save query results to CSV.
+        This method is recommended by SQLExecuteQueryOperator documentation to process the output.
+        """
+        output_path = Path(self.output_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def get_db_hook(self):
-        """Overrides the internal method to use PostgresToCSVHook."""
-        return PostgresToCSVHook(
-            output_path=self.output_path,
-            postgres_conn_id=self.conn_id
-        )
+        df = pd.DataFrame(results)
+        df.to_csv(self.output_path, index=False)
+        
+        return results

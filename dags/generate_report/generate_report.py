@@ -10,6 +10,7 @@ from airflow.sdk import dag, task
 from airflow.providers.standard.operators.empty import EmptyOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.smtp.operators.smtp import EmailOperator
+from airflow import settings
 
 from operators.postgres_export_csv_operator import PostgresExportCSVOperator
 from utils.config_json_loader import ConfigJSONLoader
@@ -22,6 +23,7 @@ import pendulum
 
 # Load default global config
 ENV = Variable.get("ENVIRONMENT")
+AIRFLOW_HOME = settings.AIRFLOW_HOME
 
 # Load environment config
 script_dir = Path(__file__).resolve()
@@ -64,7 +66,7 @@ def generate_report():
     # Fetch data from PostgreSQL
     fetch_and_export = PostgresExportCSVOperator(
         task_id="fetch_and_export",
-        output_path=os.path.join(config.postgres.get("report_output_path"), 'report_{{ ds }}.csv'),
+        output_path=os.path.join(AIRFLOW_HOME, config.postgres.get("report_output_path"), 'report_{{ ds }}.csv'),
         conn_id=config.postgres.get("conn_id"),
         sql="return_status.sql"
     )
@@ -75,7 +77,7 @@ def generate_report():
         to=config.email.get("recipient_email"),
         subject="MTD Rental Report",
         html_content="Please find the attached rental report.",
-        files=[os.path.join(config.postgres.get("report_output_path"), 'report_{{ ds }}.csv')]
+        files=[os.path.join(AIRFLOW_HOME, config.postgres.get("report_output_path"), 'report_{{ ds }}.csv')]
     )
 
     # Task dependencies
