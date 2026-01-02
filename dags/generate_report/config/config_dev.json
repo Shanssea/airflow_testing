@@ -1,7 +1,7 @@
 {
     "dag": {
         "dag_id": "generate_report",
-        "schedule": "@weekly",
+        "schedule": null,
         "tags": ["sample", "excel"]
     },
     "postgres": {
