@@ -1,0 +1,17 @@
+{
+    "dag": {
+        "dag_id": "generate_report",
+        "schedule": "@weekly",
+        "tags": ["sample", "excel"]
+    },
+    "postgres": {
+        "conn_id": "dvdrentals",
+        "report_output_path": "/opt/airflow/outputs/"
+    },
+    "email": {
+        "recipient_email": "shania.astagina@sg-edts.com"
+    },
+    "sql": {
+        "time_machine_today": "2005-07-07"
+    }
+}
