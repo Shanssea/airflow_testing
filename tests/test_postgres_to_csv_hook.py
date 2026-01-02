@@ -16,15 +16,15 @@ def mock_hook_instance():
     ([{"id": 100, "status": "active"}], 1),
     ([], 0)
 ])
-def test_process_output(mock_hook_instance, query_results, expected_df_length):
+@patch("pandas.DataFrame.to_csv")
+def test_process_output(mock_to_csv, mock_hook_instance, query_results, expected_df_length):
     """Verify that results are converted to DataFrame and saved to CSV."""
     
     # Mock pandas DataFrame.to_csv to avoid actual file writing
-    with patch("pandas.DataFrame.to_csv") as mock_to_csv:
-        result = mock_hook_instance._process_output(query_results)
-        
-        assert result == query_results # Ensure original results are returned
-        args, kwargs = mock_to_csv.call_args # Capture args and kwargs used in to_csv
-        assert args[0] == mock_hook_instance.output_path 
-        assert kwargs["index"] is False
-        assert len(pd.DataFrame(result)) == expected_df_length
+    result = mock_hook_instance._process_output(query_results)
+    
+    assert result == query_results # Ensure original results are returned
+    args, kwargs = mock_to_csv.call_args # Capture args and kwargs used in to_csv
+    assert args[0] == mock_hook_instance.output_path 
+    assert kwargs["index"] is False
+    assert len(pd.DataFrame(result)) == expected_df_length
