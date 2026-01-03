@@ -1,8 +1,8 @@
 import pytest
 import json
 import os
-from unittest.mock import patch, mock_open
-from airflow.models import DagBag, Connection
+from unittest.mock import patch
+from airflow.models import DagBag
 
 # Mock config data
 MOCK_CONFIG = {
@@ -12,7 +12,7 @@ MOCK_CONFIG = {
         "tags": ["test", "test_tags"]
     },
     "postgres": {
-        "report_output_path": "/opt/airflow/outputs/",
+        "report_output_path": "tmp/outputs/",
         "conn_id": "dvdrentals"
     },
     "email": {
@@ -24,27 +24,28 @@ MOCK_CONFIG = {
 }
 
 @pytest.fixture(autouse=True)
-@patch("utils.config_json_loader.open", new_callable=mock_open, read_data=json.dumps(MOCK_CONFIG))
+# Mock the Variable.get calls
 @patch("airflow.models.Variable.get")
-def mock_airflow_variables(mock_var_get, mock_file_open):
+def mock_airflow_variables(mock_var_get):
     """
-    Fixture to mock Airflow Variables and Config file loading.
-    Decorators handle the setup and teardown automatically.
+    Fixture to mock Airflow Variables.
     """
-    # Mock the Variable.get calls
     mock_vars = {"ENVIRONMENT": "dev"}
     mock_var_get.side_effect = mock_vars.get
-
-    # Mock the config file loading
-    mock_file_open.return_value.read.return_value = json.dumps(MOCK_CONFIG)
-
+    
     # Yield control to the tests
-    yield
+    yield 
 
 @pytest.fixture
-def dagbag():
+# Mock the config file loading
+@patch("utils.config_json_loader.ConfigJSONLoader._load_config")
+def dagbag(mock_load):
     """Fixture to load the DagBag."""
-    return DagBag(dag_folder=".", include_examples=False)
+    # Make sure to load the config before loading the DAGs
+    mock_load.return_value = MOCK_CONFIG
+    dagbag = DagBag(dag_folder=".", include_examples=False)
+
+    return dagbag
 
 ### DAG loading test
 def test_dag_loading(dagbag):
@@ -60,13 +61,13 @@ def test_dag_loading(dagbag):
     ([0], "skip"),
     (None, "skip")
 ])
+# Mock the PostgresHook.get_first
 @patch("airflow.providers.postgres.hooks.postgres.PostgresHook.get_first")
 def test_branch_logic(mock_get_first, dagbag, record_count, expected_branch):
     """Test the Python logic inside the branch task."""
     dag = dagbag.get_dag(dag_id=MOCK_CONFIG["dag"]["dag_id"])
     branch_task = dag.get_task("check_data_availability")
     
-    # Mock the PostgresHook
     mock_get_first.return_value = record_count
     result = branch_task.python_callable()
     assert result == expected_branch

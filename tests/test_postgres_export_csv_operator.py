@@ -13,18 +13,30 @@ def mock_operator_instance():
         task_id="test_task"
     )
 
-@pytest.mark.parametrize("query_results, expected_df_length", [
-    ([{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}], 2),
-    ([{"id": 100, "status": "active"}], 1),
-    ([], 0)
+@pytest.mark.parametrize("query_results, description, expected_df_length",[
+    (
+        ([ (1, 'Alice'), (2, 'Bob') ],), 
+        [ [type('Col', (), {'name': 'id'})(), type('Col', (), {'name': 'name'})()] ],
+        2
+    ),
+    (
+        ([ (3, 'Charlie') ],), 
+        [ [type('Col', (), {'name': 'id'})(), type('Col', (), {'name': 'name'})()] ],
+        1
+    ),
+    (
+        ([],), 
+        [ [type('Col', (), {'name': 'id'})(), type('Col', (), {'name': 'name'})()] ],
+        0
+    )
 ])
 @patch("pandas.DataFrame.to_csv")
-def test_process_output(mock_to_csv, mock_operator_instance, query_results, expected_df_length):
+def test_process_output(mock_to_csv, mock_operator_instance, query_results, description, expected_df_length):
     """Verify that results are converted to DataFrame and saved to CSV."""
-    result = mock_operator_instance._process_output(query_results, context={})
+    result = mock_operator_instance._process_output(query_results, description)
     
     assert result == query_results # Ensure original results are returned
     args, kwargs = mock_to_csv.call_args # Capture args and kwargs used in to_csv
     assert args[0] == mock_operator_instance.output_path 
     assert kwargs["index"] is False
-    assert len(pd.DataFrame(result)) == expected_df_length
+    assert len(pd.DataFrame(result[0])) == expected_df_length
