@@ -37,11 +37,11 @@ def mock_airflow_variables(mock_var_get):
     yield 
 
 @pytest.fixture
-# Mock the config file loading
+# Patch config loader so DAG receive mocked config
 @patch("utils.config_json_loader.ConfigJSONLoader._load_config")
 def dagbag(mock_load):
     """Fixture to load the DagBag."""
-    # Make sure to load the config before loading the DAGs
+    # Ensure DAG imports use mocked config instead of real JSON
     mock_load.return_value = MOCK_CONFIG
     dagbag = DagBag(dag_folder=".", include_examples=False)
 
