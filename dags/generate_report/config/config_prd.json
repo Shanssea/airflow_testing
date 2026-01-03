@@ -6,7 +6,7 @@
     },
     "postgres": {
         "conn_id": "dvdrentals",
-        "report_output_path": "/outputs/"
+        "report_output_path": "outputs/"
     },
     "email": {
         "recipient_email": "shania.astagina@sg-edts.com"
